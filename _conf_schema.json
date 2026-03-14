@@ -1,0 +1,168 @@
+{
+  "enabled_groups": {
+    "description": "启用审核的群号列表",
+    "type": "list",
+    "hint": "填入群号，留空则不审核任何群"
+  },
+  "group_settings": {
+    "description": "群组独立审核设置",
+    "type": "template_list",
+    "hint": "为每个群单独配置审核类型，未配置的群使用默认设置",
+    "templates": {
+      "group_config": {
+        "name": "群审核配置",
+        "hint": "配置单个群的审核类型",
+        "items": {
+          "group_id": {
+            "description": "群号",
+            "type": "string",
+            "hint": "QQ群号"
+          },
+          "check_text": {
+            "description": "审核文本消息",
+            "type": "bool",
+            "default": true
+          },
+          "check_image": {
+            "description": "审核图片消息",
+            "type": "bool",
+            "default": false
+          },
+          "image_mode": {
+            "description": "图片审核方式",
+            "type": "string",
+            "options": ["vision", "ocr"],
+            "default": "vision",
+            "hint": "vision=视觉模型识别图片内容, ocr=OCR提取文字后审核"
+          }
+        }
+      }
+    }
+  },
+  "llm_apis": {
+    "description": "大模型API配置列表",
+    "type": "template_list",
+    "hint": "配置多个API实现故障转移，按顺序尝试直到成功",
+    "templates": {
+      "api_config": {
+        "name": "API配置",
+        "hint": "配置一个大模型API",
+        "items": {
+          "name": {
+            "description": "API名称",
+            "type": "string",
+            "hint": "自定义名称，用于日志和状态显示"
+          },
+          "api_key": {
+            "description": "API Key",
+            "type": "string",
+            "hint": "大模型API密钥",
+            "obvious_hint": true
+          },
+          "base_url": {
+            "description": "Base URL",
+            "type": "string",
+            "hint": "API基础地址，如 https://api.openai.com/v1"
+          },
+          "model": {
+            "description": "文本审核模型",
+            "type": "string",
+            "hint": "用于文本审核的模型名称"
+          },
+          "vision_model": {
+            "description": "视觉审核模型",
+            "type": "string",
+            "hint": "用于图片审核的模型名称，留空则使用文本模型"
+          }
+        }
+      }
+    }
+  },
+  "moderation_prompt": {
+    "description": "审核系统提示词",
+    "type": "text",
+    "hint": "自定义AI审核的系统提示词，决定审核标准和风格",
+    "default": "你是一个严格的内容审核员。请判断以下消息是否违规。\n\n违规内容包括但不限于：\n1. 色情、低俗内容\n2. 暴力、血腥内容\n3. 政治敏感内容\n4. 诈骗、赌博信息\n5. 人身攻击、辱骂\n6. 垃圾广告\n7. 涉及违法内容\n\n请以JSON格式回复：\n{\"violation\": true/false, \"reason\": \"违规原因简述\", \"confidence\": 0.0-1.0, \"category\": \"违规类别\"}\n\n如果消息正常，violation设为false。confidence表示你的判断置信度。"
+  },
+  "image_moderation_prompt": {
+    "description": "图片审核提示词",
+    "type": "text",
+    "hint": "视觉模型审核图片时使用的提示词",
+    "default": "请仔细观察这张图片，判断是否包含以下违规内容：\n1. 色情、低俗内容\n2. 暴力、血腥内容\n3. 政治敏感内容\n4. 违法内容\n5. 令人不适的内容\n\n请以JSON格式回复：\n{\"violation\": true/false, \"reason\": \"违规原因简述\", \"confidence\": 0.0-1.0, \"category\": \"违规类别\"}"
+  },
+  "regex_pre_filter": {
+    "description": "正则预过滤规则",
+    "type": "text",
+    "hint": "每行一条正则表达式，匹配到的消息直接判定违规，不需要调用AI。留空则不启用",
+    "default": ""
+  },
+  "confidence_threshold": {
+    "description": "置信度阈值",
+    "type": "float",
+    "hint": "AI判定违规的置信度必须高于此值才执行处罚(0.0-1.0)",
+    "default": 0.7,
+    "slider": {
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05
+    }
+  },
+  "punishment_chain": {
+    "description": "处罚层级链",
+    "type": "list",
+    "hint": "按违规次数递进执行，支持: warn(警告), mute_秒数(禁言), kick(踢出), ban(拉黑)。如 warn,mute_600,mute_86400,kick",
+    "default": ["warn", "mute_600", "mute_3600", "kick"]
+  },
+  "delete_violation_msg": {
+    "description": "撤回违规消息",
+    "type": "bool",
+    "hint": "违规时是否尝试撤回原始消息",
+    "default": true
+  },
+  "notify_user": {
+    "description": "私聊通知用户",
+    "type": "bool",
+    "hint": "违规时是否私聊通知被处罚的用户",
+    "default": true
+  },
+  "notify_user_template": {
+    "description": "用户通知模板",
+    "type": "string",
+    "hint": "发送给违规用户的消息模板。可用变量: {reason}, {count}, {punishment}, {group}, {time}",
+    "default": "【审核通知】你在群 {group} 的消息因以下原因被处理：\n原因: {reason}\n处罚: {punishment}\n累计违规: {count}次\n时间: {time}"
+  },
+  "notify_target": {
+    "description": "违规通知目标",
+    "type": "string",
+    "hint": "违规信息推送目标，填群号或用户ID，留空则不推送"
+  },
+  "notify_template": {
+    "description": "通知消息模板",
+    "type": "string",
+    "hint": "推送到群/人的消息模板。可用变量: {user}, {user_id}, {group}, {group_id}, {content}, {reason}, {category}, {confidence}, {time}, {count}, {punishment}",
+    "default": "【违规举报】\n用户: {user}({user_id})\n群: {group}({group_id})\n内容: {content}\n违规类型: {category}\n原因: {reason}\n置信度: {confidence}\n处罚: {punishment}\n累计违规: {count}次\n时间: {time}"
+  },
+  "whitelist_users": {
+    "description": "白名单用户",
+    "type": "list",
+    "hint": "填入用户ID，这些用户的消息将跳过审核"
+  },
+  "whitelist_admin": {
+    "description": "管理员免审核",
+    "type": "bool",
+    "hint": "AstrBot管理员自动跳过审核",
+    "default": true
+  },
+  "max_rpm": {
+    "description": "每分钟最大API调用量",
+    "type": "int",
+    "hint": "限制API调用频率，防止超额计费",
+    "default": 30
+  },
+  "violation_expire_days": {
+    "description": "违规记录过期天数",
+    "type": "int",
+    "hint": "违规记录超过此天数后自动清理，0表示永不过期",
+    "default": 30
+  }
+}

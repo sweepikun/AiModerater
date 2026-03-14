@@ -1,0 +1,13 @@
+name: astrbot_plugin_ai_moderator
+display_name: AI智能审核
+author: AiFilter
+desc: 基于大模型的群消息AI审核插件，支持文本/图片审核、多API故障转移、可配置处罚链、违规记录查询
+version: 1.0.0
+repo: ""
+license: MIT
+support_platforms:
+  - aiocqhttp
+  - qq_official
+categories:
+  - moderation
+  - tools
