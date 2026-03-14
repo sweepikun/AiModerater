@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
@@ -31,7 +32,8 @@ class AIModeratorPlugin(Star):
 
     async def initialize(self):
         """插件初始化"""
-        data_path = get_astrbot_data_path() / "plugin_data" / "ai_moderator"
+        data_path = Path(get_astrbot_data_path()) / "plugin_data" / "ai_moderator"
+        data_path.mkdir(parents=True, exist_ok=True)
         db_path = str(data_path / "violations.db")
 
         self.db = ViolationDB(db_path)
